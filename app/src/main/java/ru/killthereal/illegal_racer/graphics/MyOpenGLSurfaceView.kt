@@ -6,7 +6,7 @@ import android.util.AttributeSet
 
 class MyOpenGLSurfaceView : GLSurfaceView {
 
-    private var renderer: ru.killthereal.illegal_racer.graphics.Renderer? = null
+    private var renderWrapper: ru.killthereal.illegal_racer.graphics.RenderWrapper? = null
 
     constructor (context: Context) : super(context) {
         initOpenGLView()
@@ -22,8 +22,8 @@ class MyOpenGLSurfaceView : GLSurfaceView {
         preserveEGLContextOnPause = true
 
         // Set renderer for drawing stuff
-        renderer = Renderer(context)
-        setRenderer(renderer)
+        renderWrapper = RenderWrapper(context)
+        setRenderer(renderWrapper)
     }
 
 }

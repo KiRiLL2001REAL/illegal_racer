@@ -1,38 +1,57 @@
 package ru.killthereal.illegal_racer.graphics.drawable
 
 import android.opengl.GLES30.*
-import java.nio.IntBuffer
+import android.util.Log
 
 class Triangle {
+    companion object {
+        const val TAG = "JTriangle"
+    }
+
+    private external fun triangleInit(vertices: FloatArray)
 
     /**
      * Coordinates XYZ
      */
     var vertices = floatArrayOf(
-        -0.5f, -0.5f, 0.0f,
-        0.0f, 0.5f, 0.0f,
-        0.5f, 0.0f, 0.0f
+        0.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f
     )
         set(value) {
-            for (i in value.indices) {
-                if (value[i] < -1.0f)
-                    value[i] = -1.0f
-                else if (value[i] > 1.0f)
-                    value[i] = 1.0f
+            if (value.size < field.size) {
+                Log.w(TAG, "Coordinates are not updated. Not enough arguments.")
+                return
+            }
+            for (indx in field.indices) {
+                if (value[indx] < -1.0f)
+                    value[indx] = -1.0f
+                else if (value[indx] > 1.0f)
+                    value[indx] = 1.0f
             }
             field = value
         }
 
     /**
      * Object of vertex(es) array(s).
-     * Contains:
-     *      list of vertex attributes,
-     *      buffers of indexes,
-     *      buffers of vertex data,
-     *      and etc.
-     * Drawing by function glDrawArrays
+     * Contains: list of vertex attributes, buffers of indexes, buffers of vertex data, and etc.
+     * Drawing by function glDrawArrays.
      */
-    private lateinit var VAO: IntBuffer
+    private var VAO = 0
+    private var VBO = 0
 
-    private lateinit var VBO: IntBuffer
+    fun updateVAOandVBO(VAO: Int, VBO: Int) {
+        this.VAO = VAO
+        this.VBO = VBO
+    }
+
+    init {
+        triangleInit(vertices)  // c++ call
+    }
+
+    fun draw() {
+        glBindVertexArray(VAO)
+        glDrawArrays(GL_TRIANGLES, 0, 3)
+        glBindVertexArray(0)
+    }
 }

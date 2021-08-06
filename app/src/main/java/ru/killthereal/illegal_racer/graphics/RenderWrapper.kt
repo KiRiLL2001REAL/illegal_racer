@@ -10,13 +10,13 @@ import ru.killthereal.illegal_racer.graphics.drawable.Triangle
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class Renderer(var context: Context) : GLSurfaceView.Renderer {
+class RenderWrapper(var context: Context) : GLSurfaceView.Renderer {
 
     lateinit var shader: Shader
     lateinit var triangle: Triangle
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
+        glClearColor(1.0f, 0.0f, 0.0f, 1.0f)
 
         val vsh = context.resources.openRawResource(R.raw.vertex)
             .bufferedReader().use { it.readText() }
@@ -28,7 +28,7 @@ class Renderer(var context: Context) : GLSurfaceView.Renderer {
             Toast.makeText(context, "Failed to load shader", Toast.LENGTH_SHORT).show()
         shader.release()
 
-        //triangle = Triangle()
+        triangle = Triangle()
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
@@ -39,7 +39,7 @@ class Renderer(var context: Context) : GLSurfaceView.Renderer {
         glClear(GL_COLOR_BUFFER_BIT)
 
         shader.use()
-        //triangle.draw()
+        triangle.draw()
     }
 
 }
