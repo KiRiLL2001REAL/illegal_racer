@@ -8,14 +8,9 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import ru.killthereal.illegal_racer.render.MyOpenGLSurfaceView
-import java.util.logging.Logger
-
+import ru.killthereal.illegal_racer.graphics.MyOpenGLSurfaceView
 
 class MainActivity : AppCompatActivity() {
-    companion object {
-        val LOG = Logger.getLogger(MainActivity::class.java.name)
-    }
 
     private var glSurfaceSurfaceView: MyOpenGLSurfaceView? = null
 
