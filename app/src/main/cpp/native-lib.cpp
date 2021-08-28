@@ -1,7 +1,14 @@
 #include <jni.h>
-#include <GLES3/gl3.h>
-#include <GLES3/gl3ext.h>
+#include <exception>
+#include "LogHelper.h"
 
+#include "graphics/Renderer.h"
+
+const char* TAG = "NATIVE-LIB";
+
+rend::Renderer* aRenderer = nullptr;
+
+/*
 extern "C"
 JNIEXPORT void JNICALL
 Java_ru_killthereal_illegal_1racer_graphics_drawable_Triangle_triangleInit
@@ -25,17 +32,17 @@ Java_ru_killthereal_illegal_1racer_graphics_drawable_Triangle_triangleInit
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	// Position
 	glVertexAttribPointer(
-			/*Индекс вершинного аттрибута*/
+			//Индекс вершинного аттрибута
 			0,
-			/*Длина вершинного аттрибута в единицах*/
+			//Длина вершинного аттрибута в единицах
 			3,
-			/*Тип данных*/
+			//Тип данных
 			GL_FLOAT,
-			/*Нужна ли нормализация*/
+			//Нужна ли нормализация
 			GL_FALSE,
-			/*Длина шага в байтах*/
+			//Длина шага в байтах
 			3 * sizeof(GLfloat),
-			/*на сколько сдвинут вершинный аттрибут относительно начала*/
+			//на сколько сдвинут вершинный аттрибут относительно начала
 			(GLvoid *) (0 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(0);
 
@@ -44,4 +51,32 @@ Java_ru_killthereal_illegal_1racer_graphics_drawable_Triangle_triangleInit
 	jclass triangle = env->FindClass("ru/killthereal/illegal_racer/graphics/drawable/Triangle");
 	jmethodID updateID = env->GetMethodID(triangle, "updateVAOandVBO", "(II)V");
 	env->CallVoidMethod(thiz, updateID, (jint)VAO, (jint)VBO);
+}
+*/
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_ru_killthereal_illegal_1racer_MainActivity_jniCreateRenderer(
+        JNIEnv *env,
+        jobject thiz) {
+    aRenderer = new rend::Renderer();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_ru_killthereal_illegal_1racer_MainActivity_jniDestroyRenderer(
+        JNIEnv *env,
+        jobject thiz) {
+    if (!aRenderer)
+        LOGW(TAG, "Attempt to destroy an uninitialized renderer");
+    else {
+        delete aRenderer;
+        aRenderer = nullptr;
+    }
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_ru_killthereal_illegal_1racer_MainActivity_jniIsRendererAlive(JNIEnv *env, jobject thiz) {
+    return aRenderer != nullptr;
 }

@@ -10,33 +10,39 @@ import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import ru.killthereal.illegal_racer.graphics.MyOpenGLSurfaceView
 
-
 class MainActivity : AppCompatActivity() {
     companion object {
-        // Used to load the 'native-lib' library on application startup.
         init {
             System.loadLibrary("native-lib")
         }
     }
+
+    private external fun jniCreateRenderer()
+    private external fun jniDestroyRenderer()
+    private external fun jniIsRendererAlive() : Boolean
 
     private var glSurfaceSurfaceView: MyOpenGLSurfaceView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        setContentView(R.layout.activity_main)
 
+        glSurfaceSurfaceView = findViewById(R.id.myOpenGLSurfaceView)
         glSurfaceSurfaceView = MyOpenGLSurfaceView(this)
-        setContentView(glSurfaceSurfaceView)
     }
 
     override fun onResume() {
         super.onResume()
+        if (!jniIsRendererAlive())
+            jniCreateRenderer()
         glSurfaceSurfaceView?.onResume()
     }
 
     override fun onPause() {
         super.onPause()
         glSurfaceSurfaceView?.onPause()
+        jniDestroyRenderer()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

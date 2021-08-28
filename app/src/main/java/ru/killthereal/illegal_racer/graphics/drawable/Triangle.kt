@@ -5,10 +5,10 @@ import android.util.Log
 
 class Triangle {
     companion object {
-        const val TAG = "JTriangle"
+        const val TAG = "Triangle"
     }
 
-    private external fun triangleInit(vertices: FloatArray)
+    //private external fun triangleInit(vertices: FloatArray)
 
     /**
      * Coordinates XYZ
@@ -46,7 +46,7 @@ class Triangle {
     }
 
     init {
-        triangleInit(vertices)  // c++ call
+        //triangleInit(vertices)  // c++ call
     }
 
     fun draw() {

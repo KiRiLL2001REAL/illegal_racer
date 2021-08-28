@@ -14,8 +14,8 @@ class RenderWrapper(
     private var context: Context
     ) : GLSurfaceView.Renderer {
 
-    private lateinit var shader: Shader
-    private lateinit var triangle: Triangle
+    //private lateinit var shader: Shader
+    //private lateinit var triangle: Triangle
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         glClearColor(1.0f, 0.0f, 0.0f, 1.0f)
@@ -25,12 +25,12 @@ class RenderWrapper(
         val fsh = context.resources.openRawResource(R.raw.fragment_shader).bufferedReader()
             .use { it.readText() }
 
-        shader = Shader()
-        if (!shader.createProgram(vsh, fsh))
-            Toast.makeText(context, "Failed to load shader", Toast.LENGTH_SHORT).show()
-        shader.release()
+        //shader = Shader()
+        //if (!shader.createProgram(vsh, fsh))
+        //    Toast.makeText(context, "Failed to load shader", Toast.LENGTH_SHORT).show()
+        //shader.release()
 
-        triangle = Triangle()
+        //triangle = Triangle()
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
@@ -40,8 +40,8 @@ class RenderWrapper(
     override fun onDrawFrame(gl: GL10?) {
         glClear(GL_COLOR_BUFFER_BIT)
 
-        shader.use()
-        triangle.draw()
+        //shader.use()
+        //triangle.draw()
     }
 
 }

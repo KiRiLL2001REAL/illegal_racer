@@ -5,7 +5,6 @@ import android.opengl.GLSurfaceView
 import android.util.AttributeSet
 
 class MyOpenGLSurfaceView : GLSurfaceView {
-
     private var renderWrapper: RenderWrapper? = null
 
     constructor (context: Context) : super(context) {
