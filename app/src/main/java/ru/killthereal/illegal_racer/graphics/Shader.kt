@@ -26,23 +26,23 @@ class Shader {
      * Creating program of shader from source code of vertex and fragment shader
      */
     fun createProgram(vertexSource: String, fragmentSource: String): Boolean {
-        if (program != ShaderMaker.UNKNOWN_PROGRAM) {
+        if (program != UNKNOWN_PROGRAM) {
             // удаляем программу
             glDeleteProgram(program)
-            program = ShaderMaker.UNKNOWN_PROGRAM
+            program = UNKNOWN_PROGRAM
         }
         // загружаем вершинный шейдер
         val vertexShader = loadShader(GL_VERTEX_SHADER, vertexSource)
-        if (vertexShader == ShaderMaker.UNKNOWN_PROGRAM)
+        if (vertexShader == UNKNOWN_PROGRAM)
             return false
 
         // загружаем фрагментный шейдер
         val fragmentShader = loadShader(GL_FRAGMENT_SHADER, fragmentSource)
-        if (fragmentShader == ShaderMaker.UNKNOWN_PROGRAM)
+        if (fragmentShader == UNKNOWN_PROGRAM)
             return false
 
         program = glCreateProgram()
-        if (program != ShaderMaker.UNKNOWN_PROGRAM) {
+        if (program != UNKNOWN_PROGRAM) {
             glAttachShader(program, vertexShader)
             checkGlError("glAttachShader: vertex")
             glAttachShader(program, fragmentShader)
@@ -58,17 +58,17 @@ class Shader {
     }
 
     private fun linkProgram(): Boolean {
-        if (program == ShaderMaker.UNKNOWN_PROGRAM)
+        if (program == UNKNOWN_PROGRAM)
             return false
 
         glLinkProgram(program)
         val linkStatus = IntArray(1)
         glGetProgramiv(program, GL_LINK_STATUS, linkStatus, 0)
         if (linkStatus[0] != GL_TRUE) {
-            Log.e(ShaderMaker.TAG, "Could not link program: ")
-            Log.e(ShaderMaker.TAG, glGetProgramInfoLog(program))
+            Log.e(TAG, "Could not link program: ")
+            Log.e(TAG, glGetProgramInfoLog(program))
             glDeleteProgram(program)
-            program = ShaderMaker.UNKNOWN_PROGRAM
+            program = UNKNOWN_PROGRAM
             return false
         }
         return true
@@ -76,16 +76,16 @@ class Shader {
 
     private fun loadShader(shaderType: Int, source: String): Int {
         var shader = glCreateShader(shaderType)
-        if (shader != ShaderMaker.UNKNOWN_PROGRAM) {
+        if (shader != UNKNOWN_PROGRAM) {
             glShaderSource(shader, source)
             glCompileShader(shader)
             val compiled = IntArray(1)
             glGetShaderiv(shader, GL_COMPILE_STATUS, compiled, 0)
-            if (compiled[0] == ShaderMaker.UNKNOWN_PROGRAM) {
-                Log.e(ShaderMaker.TAG, "Could not compile shader $shaderType:")
-                Log.e(ShaderMaker.TAG, glGetShaderInfoLog(shader))
+            if (compiled[0] == UNKNOWN_PROGRAM) {
+                Log.e(TAG, "Could not compile shader $shaderType:")
+                Log.e(TAG, glGetShaderInfoLog(shader))
                 glDeleteShader(shader)
-                shader = ShaderMaker.UNKNOWN_PROGRAM
+                shader = UNKNOWN_PROGRAM
             }
         }
         return shader
@@ -94,7 +94,7 @@ class Shader {
     private fun checkGlError(op: String) {
         var error: Int
         while (glGetError().also { error = it } != GL_NO_ERROR) {
-            Log.e(ShaderMaker.TAG, "$op: glError $error")
+            Log.e(TAG, "$op: glError $error")
             throw RuntimeException("$op: glError $error")
         }
     }

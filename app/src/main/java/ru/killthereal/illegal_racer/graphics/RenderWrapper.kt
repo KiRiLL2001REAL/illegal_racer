@@ -10,18 +10,20 @@ import ru.killthereal.illegal_racer.graphics.drawable.Triangle
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class RenderWrapper(var context: Context) : GLSurfaceView.Renderer {
+class RenderWrapper(
+    private var context: Context
+    ) : GLSurfaceView.Renderer {
 
-    lateinit var shader: Shader
-    lateinit var triangle: Triangle
+    private lateinit var shader: Shader
+    private lateinit var triangle: Triangle
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         glClearColor(1.0f, 0.0f, 0.0f, 1.0f)
 
-        val vsh = context.resources.openRawResource(R.raw.vertex)
-            .bufferedReader().use { it.readText() }
-        val fsh = context.resources.openRawResource(R.raw.fragment_shader)
-            .bufferedReader().use { it.readText() }
+        val vsh = context.resources.openRawResource(R.raw.vertex).bufferedReader()
+            .use { it.readText() }
+        val fsh = context.resources.openRawResource(R.raw.fragment_shader).bufferedReader()
+            .use { it.readText() }
 
         shader = Shader()
         if (!shader.createProgram(vsh, fsh))
