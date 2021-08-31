@@ -21,8 +21,9 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        graphics/Renderer.cpp
+        graphics/base_renderer/Renderer.cpp
         graphics/Shader.cpp
+        graphics/MyRenderer.cpp
         graphics/drawable/Triangle.cpp
         native-lib.cpp)
 
@@ -51,5 +52,6 @@ target_link_libraries(
         # included in the NDK.
         ${log-lib}
 
+        android
         EGL
         GLESv3)

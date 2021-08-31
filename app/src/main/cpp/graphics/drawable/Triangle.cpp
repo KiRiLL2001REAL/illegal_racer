@@ -4,10 +4,12 @@
 #include <GLES3/gl3ext.h>
 #include "../../LogHelper.h"
 
-tr::Triangle::Triangle() {
+Triangle::Triangle()
+{
 
 }
 
-tr::Triangle::~Triangle() {
+Triangle::~Triangle()
+{
 
 }

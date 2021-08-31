@@ -1,16 +1,21 @@
 #ifndef ILLEGAL_RACER_SHADER_H
 #define ILLEGAL_RACER_SHADER_H
 
-namespace sh {
-    class Shader {
-    private:
-        const char *const TAG = "Shader";
+#include <string>
 
-    public:
-        Shader();
+class Shader
+{
+public:
+    constexpr static const char *const TAG = "Shader";
 
-        ~Shader();
-    };
-}
+    unsigned int id;
+
+    Shader(unsigned int id);
+    ~Shader();
+
+    void use() const;
+};
+
+extern Shader* load_shader(const std::string &vertexFilePath, const std::string &fragmentFilePath);
 
 #endif
