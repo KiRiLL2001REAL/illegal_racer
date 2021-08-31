@@ -1,10 +1,17 @@
 package ru.killthereal.illegal_racer
 
+import android.content.Context
 import android.content.pm.ActivityInfo
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.IOException
+import java.lang.Exception
 
 class MainActivity : AppCompatActivity(), SurfaceHolder.Callback {
     companion object {
@@ -12,6 +19,8 @@ class MainActivity : AppCompatActivity(), SurfaceHolder.Callback {
             System.loadLibrary("native-lib")
         }
     }
+
+    val TAG = "MainActivity"
 
     private external fun nativeOnStart()
     private external fun nativeOnResume()
@@ -81,5 +90,52 @@ class MainActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         nativeSetSurface(null)
+    }
+
+    fun getShaderPaths(vertexName: String, fragmentName: String): ArrayList<String> {
+        val result = ArrayList<String>()
+
+        try {
+            val shaderDir = getDir("raw", Context.MODE_PRIVATE)
+            val vertexShaderFile = File(shaderDir, vertexName)
+            val fragmentShaderFile = File(shaderDir, fragmentName)
+
+            // Vertex
+            var aInputStream = resources.openRawResource(R.raw.vertex)
+            var aOutputStream = FileOutputStream(vertexShaderFile)
+            val buffer = ByteArray(4096)
+            var bytesRead = aInputStream.read(buffer)
+            while (bytesRead != -1) {
+                aOutputStream.write(buffer, 0, bytesRead)
+                bytesRead = aInputStream.read(buffer)
+            }
+            aInputStream.close()
+            aOutputStream.close()
+
+            // Fragment
+            aInputStream = resources.openRawResource(R.raw.fragment_shader)
+            aOutputStream = FileOutputStream(fragmentShaderFile)
+            bytesRead = aInputStream.read(buffer)
+            while (bytesRead != -1) {
+                aOutputStream.write(buffer, 0, bytesRead)
+                bytesRead = aInputStream.read(buffer)
+            }
+            aInputStream.close()
+            aOutputStream.close()
+
+            result.add(vertexShaderFile.absolutePath)
+            result.add(fragmentShaderFile.absolutePath)
+        }
+        catch (e: FileNotFoundException) {
+            Log.e(TAG, "An error occurred in getShaderPaths(): file not found\n" + e.message)
+        }
+        catch (e: IOException) {
+            Log.e(TAG, "An I/O error occurred in getShaderPaths()\n" + e.message)
+        }
+        catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return result
     }
 }

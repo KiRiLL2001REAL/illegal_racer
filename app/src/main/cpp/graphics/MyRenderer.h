@@ -10,21 +10,20 @@ class MyRenderer : public Renderer
 public:
     constexpr static const char *const TAG = "MyRenderer";
 
-    MyRenderer();
+    MyRenderer(JNIEnv *env, jobject wrappedInstance);
     virtual ~MyRenderer();
-
-    void loadShader(const std::string &vertexFilePath, const std::string &fragmentFilePath);
 
 private:
     Shader *mShader;
     Triangle *mTriangle;
 
+    JavaVM *mJVM;
+    jobject mObjectRef;
+    jmethodID mMethodIdGetShaderPaths;
+
+    JNIEnv* getJNIEnv();
+    void loadShader();
+
 };
-
-extern "C"
-{
-    JNIEXPORT void JNICALL Java_ru_killthereal_illegal_1racer_graphics_Renderer_loadShader(JNIEnv *env, jobject thiz, jstring vertex_shader_path, jstring fragment_shader_path);
-}
-
 
 #endif

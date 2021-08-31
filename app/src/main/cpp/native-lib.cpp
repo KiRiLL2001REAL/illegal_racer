@@ -14,7 +14,7 @@ Java_ru_killthereal_illegal_1racer_MainActivity_nativeOnStart(
         JNIEnv *env,
         jobject thiz)
 {
-    aRenderer = new MyRenderer();
+    aRenderer = new MyRenderer(env, thiz);
 }
 
 extern "C"
