@@ -32,6 +32,8 @@ Shader* load_shader(const std::string &vFilePath, const std::string &fFilePath)
     ifstream vShFile;
     ifstream fShFile;
 
+    LOGI(Shader::TAG, "Loading shader...");
+
     // Чтение файлов
     vShFile.exceptions(ifstream::badbit);
     fShFile.exceptions(ifstream::badbit);
@@ -55,57 +57,64 @@ Shader* load_shader(const std::string &vFilePath, const std::string &fFilePath)
         LOGE(Shader::TAG, "File not found");
         return nullptr;
     }
+
     const GLchar *vShaderCode = vCode.c_str();
     const GLchar *fShaderCode = fCode.c_str();
 
     // Компиляция шейдеров
-    GLuint vertex, fragment;
-    GLint success;
-    GLchar infoLog[512];
 
     // Вершинный
-    vertex = glCreateShader(GL_VERTEX_SHADER);
+    GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vShaderCode, nullptr);
     glCompileShader(vertex);
-    glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
-    if (!success)
+    GLint vertex_compiled;
+    glGetShaderiv(vertex, GL_COMPILE_STATUS, &vertex_compiled);
+    if (vertex_compiled != GL_TRUE)
     {
-        glGetShaderInfoLog(vertex, 512, nullptr, infoLog);
-        LOGE(Shader::TAG, "Vertex compilation failed: %s", infoLog);
-        return nullptr;
+        GLchar message[1024];
+        message[0] = '\0';
+        glGetShaderInfoLog(vertex, 1024, nullptr, message);
+        LOGE(Shader::TAG, "Vertex compilation failed: %s", message);
+        throw exception();
     }
 
     // Фрагментный
-    fragment = glCreateShader(GL_FRAGMENT_SHADER);
+    GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fShaderCode, nullptr);
     glCompileShader(fragment);
-    glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
-    if (!success)
+    GLint fragment_compiled;
+    glGetShaderiv(fragment, GL_COMPILE_STATUS, &fragment_compiled);
+    if (fragment_compiled != GL_TRUE)
     {
-        glGetShaderInfoLog(fragment, 512, nullptr, infoLog);
-        LOGE(Shader::TAG, "Fragment compilation failed: %s", infoLog);
-        return nullptr;
+        GLchar message[1024];
+        message[0] = '\0';
+        glGetShaderInfoLog(fragment, 1024, nullptr, message);
+        LOGE(Shader::TAG, "Fragment compilation failed: %s", message);
+        throw exception();
     }
 
     // Создание шейдерной программы (линковка)
-    GLuint id = glCreateProgram();
-    glAttachShader(id, vertex);
-    glAttachShader(id, fragment);
-    glLinkProgram(id);
-
-    glGetProgramiv(id, GL_LINK_STATUS, &success);
-    if (!success)
-    {
-        glGetProgramInfoLog(id, 512, nullptr, infoLog);
-        LOGE(Shader::TAG, "Program linking failed: %s", infoLog);
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
-        glDeleteProgram(id);
-        return nullptr;
-    }
+    GLuint programId = glCreateProgram();
+    glAttachShader(programId, vertex);
+    glAttachShader(programId, fragment);
+    glLinkProgram(programId);
 
     glDeleteShader(vertex);
     glDeleteShader(fragment);
 
-    return new Shader(id);
+    GLint program_linked;
+    glGetProgramiv(programId, GL_LINK_STATUS, &program_linked);
+    if (program_linked != GL_TRUE)
+    {
+        GLchar message[1024];
+        message[0] = '\0';
+        glGetProgramInfoLog(programId, 1024, nullptr, message);
+        LOGE(Shader::TAG, "Program linking failed: %s", message);
+        glDeleteProgram(programId);
+        throw exception();
+    }
+
+    LOGI(Shader::TAG, "Successful loaded.");
+
+    return new Shader(programId);
 }

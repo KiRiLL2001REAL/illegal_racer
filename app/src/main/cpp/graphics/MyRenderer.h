@@ -24,6 +24,8 @@ private:
     JNIEnv* getJNIEnv();
     void loadShader();
 
+protected:
+    virtual void loadStuff();
 };
 
 #endif

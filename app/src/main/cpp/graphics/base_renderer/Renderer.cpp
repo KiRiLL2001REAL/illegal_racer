@@ -1,7 +1,6 @@
 #include "Renderer.h"
 
 #include <jni.h>
-#include <GLES/gl.h>
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
 #include <EGL/egl.h>
@@ -83,6 +82,7 @@ void Renderer::renderLoop()
         {
             case MSG_WINDOW_SET:
                 initialize();
+                loadStuff();
                 break;
             case MSG_RENDER_LOOP_EXIT:
                 renderingEnabled = false;
@@ -126,9 +126,14 @@ bool Renderer::initialize()
 
     const EGLint attribs[] = {
             EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
             EGL_BLUE_SIZE, 8,
             EGL_GREEN_SIZE, 8,
             EGL_RED_SIZE, 8,
+            EGL_NONE
+    };
+    const EGLint attribList[] = {
+            EGL_CONTEXT_CLIENT_VERSION, 3,
             EGL_NONE
     };
     EGLDisplay display;
@@ -177,7 +182,7 @@ bool Renderer::initialize()
         return false;
     }
 
-    if (!(context = eglCreateContext(display, config, nullptr, nullptr)))
+    if (!(context = eglCreateContext(display, config, nullptr, attribList)))
     {
         LOGE(TAG, "eglCreateContext() returned error %d", eglGetError());
         destroy();
@@ -204,7 +209,6 @@ bool Renderer::initialize()
     mContext = context;
 
     glDisable(GL_DITHER);
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
     glClearColor(0.f,0.f,0.f,1.f);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
@@ -212,6 +216,11 @@ bool Renderer::initialize()
     glViewport(0, 0, width, height);
 
     ratio = (GLfloat) width / height;
+
+    GLint major, minor;
+    glGetIntegerv(GL_MAJOR_VERSION, &major);
+    glGetIntegerv(GL_MINOR_VERSION, &minor);
+    LOGI(TAG, "Current OpenGL context version is %d.%d", major, minor);
 
     return true;
 }

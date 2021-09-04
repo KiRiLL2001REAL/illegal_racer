@@ -12,6 +12,10 @@ import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import java.lang.Exception
+import android.app.ActivityManager
+import android.widget.Toast
+import java.lang.RuntimeException
+
 
 class MainActivity : AppCompatActivity(), SurfaceHolder.Callback {
     companion object {
@@ -32,6 +36,17 @@ class MainActivity : AppCompatActivity(), SurfaceHolder.Callback {
         super.onCreate(savedInstanceState)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         setContentView(R.layout.activity_main)
+
+        val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        val configurationInfo = activityManager.deviceConfigurationInfo
+        val version = configurationInfo.reqGlEsVersion
+        if (version < 0x30000) {
+            val strVersion = configurationInfo.glEsVersion
+            Toast.makeText(this, "Unsupported GLES version. Need 3.0 version at least," +
+                    " but your device support only $strVersion", Toast.LENGTH_LONG).show()
+            throw RuntimeException("Unsupported GLES version. Need 3.0 version at least, but " +
+                    "your device support only $strVersion")
+        }
 
         val surfaceView = findViewById<SurfaceView>(R.id.surfaceView)
         surfaceView.holder.addCallback(this)

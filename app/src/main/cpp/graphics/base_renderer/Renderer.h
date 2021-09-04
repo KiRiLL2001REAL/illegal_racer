@@ -43,8 +43,10 @@ private:
     // Подменяемая функция рисования
     void (*drawStuff)();
 
-    //   RenderLoop вызывается при старте потока рендеринга в методе start(). Он создаёт
-    // контекст рендеринга и отрисовывает сцену, пока не будет вызван метод stop().
+    /**     setRenderLoop вызывается при старте потока рендеринга в методе start().
+     *      Он создаёт контекст рендеринга и отрисовывает сцену, пока не будет
+     *   вызван метод stop().
+     */
     void renderLoop();
 
     bool initialize();
@@ -55,6 +57,11 @@ private:
     // Вспомогательный метод для запуска потока рендеринга
     static void* threadStartCallback(void *myself);
 
+protected:
+    /**
+     *  A method in which you can load shaders and etc, that require on OpenGL ES context
+     */
+    virtual void loadStuff() = 0;
 };
 
 #endif
