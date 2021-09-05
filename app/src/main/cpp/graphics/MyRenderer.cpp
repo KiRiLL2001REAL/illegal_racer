@@ -30,16 +30,7 @@ MyRenderer::~MyRenderer()
     {
         env->DeleteGlobalRef(mObjectRef);
     }
-    if (mShader)
-    {
-        delete mShader;
-        mShader = nullptr;
-    }
-    if (mTriangle)
-    {
-        delete mTriangle;
-        mTriangle = nullptr;
-    }
+    unloadStuff();
 }
 
 JNIEnv *MyRenderer::getJNIEnv()
@@ -103,6 +94,20 @@ void MyRenderer::loadShader()
 
 void MyRenderer::loadStuff()
 {
-    if (mShader == nullptr)
-        loadShader();
+    loadShader();
+    mTriangle = new Triangle();
+}
+
+void MyRenderer::drawScene()
+{
+    mShader->use();
+    mTriangle->draw();
+}
+
+void MyRenderer::unloadStuff()
+{
+    delete mShader;
+    mShader = nullptr;
+    delete mTriangle;
+    mTriangle = nullptr;
 }

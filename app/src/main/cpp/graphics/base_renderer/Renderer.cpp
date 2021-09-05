@@ -22,8 +22,7 @@ Renderer::Renderer() :
         mWindow(nullptr),
         mDisplay(EGL_NO_DISPLAY),
         mSurface(EGL_NO_SURFACE),
-        mContext(EGL_NO_CONTEXT),
-        drawStuff(nullptr)
+        mContext(EGL_NO_CONTEXT)
 {
     LOGI(TAG, "Renderer instance created");
     pthread_mutex_init(&mMutex, nullptr);
@@ -56,15 +55,11 @@ void Renderer::stop()
 
 void Renderer::setWindow(ANativeWindow *window)
 {
-    if (mWindow != window)
-    {
-        // Сообщаем потоку рендеринга о смене окна
-        pthread_mutex_lock(&mMutex);
-        mMsg = MSG_WINDOW_SET;
-        mWindow = window;
-        pthread_mutex_unlock(&mMutex);
-    }
-    else LOGW(TAG, "Window isn't changed, because previous one is identical");
+    // Сообщаем потоку рендеринга о смене окна
+    pthread_mutex_lock(&mMutex);
+    mMsg = MSG_WINDOW_SET;
+    mWindow = window;
+    pthread_mutex_unlock(&mMutex);
 }
 
 void Renderer::renderLoop()
@@ -81,6 +76,7 @@ void Renderer::renderLoop()
         switch (mMsg)
         {
             case MSG_WINDOW_SET:
+                unloadStuff();
                 initialize();
                 loadStuff();
                 break;
@@ -209,7 +205,7 @@ bool Renderer::initialize()
     mContext = context;
 
     glDisable(GL_DITHER);
-    glClearColor(0.f,0.f,0.f,1.f);
+    glClearColor(0.2f,0.2f,0.2f,1.f);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
@@ -242,8 +238,7 @@ void Renderer::destroy()
 void Renderer::drawFrame()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (drawStuff)
-        drawStuff();
+    drawScene();
 }
 
 void *Renderer::threadStartCallback(void *myself)
@@ -252,9 +247,4 @@ void *Renderer::threadStartCallback(void *myself)
 
     renderer->renderLoop();
     pthread_exit(nullptr);
-}
-
-void Renderer::setDrawFunction(void (*function)())
-{
-    drawStuff = function;
 }

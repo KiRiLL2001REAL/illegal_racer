@@ -20,8 +20,6 @@ public:
     void stop();
     void setWindow(ANativeWindow* window);
 
-    void setDrawFunction(void (*function)());
-
 private:
     enum RenderThreadMessage {
         MSG_NONE = 0,
@@ -40,9 +38,6 @@ private:
     EGLSurface mSurface;
     EGLContext mContext;
 
-    // Подменяемая функция рисования
-    void (*drawStuff)();
-
     /**     setRenderLoop вызывается при старте потока рендеринга в методе start().
      *      Он создаёт контекст рендеринга и отрисовывает сцену, пока не будет
      *   вызван метод stop().
@@ -59,9 +54,24 @@ private:
 
 protected:
     /**
-     *  A method in which you can load shaders and etc, that require on OpenGL ES context
+     * Метод, посредством которого выполняется освобождение памяти из-под компонентов, требующих
+     * контекст OpenGL, таких как: шейдеры, примитивы, которые содержат VAO и VBO, и т.д.
+     *  <p>Автоматически вызывается перед парной функцией <code>loadStuff()</code>. После
+     * освобождения памяти <b>настоятельно рекомендуется присваивать ссылкам значение
+     * <code>nullptr</code></b>
+     *  <p>Может быть вызван в деструкторе класса рендера.
+     */
+    virtual void unloadStuff() = 0;
+    /**
+     * Метод, посредством которого выполняется инициализация каких-либо компонентов, требующих
+     * контекст OpenGL, таких как: шейдеры, примитивы, которые содержат VAO и VBO, и т.д.
+     * <p>Автоматически вызывается после создания OpenGL ES контекста.
      */
     virtual void loadStuff() = 0;
+    /**
+     * Метод, посредством которого выполняется рендеринг сцены
+     */
+    virtual void drawScene() = 0;
 };
 
 #endif

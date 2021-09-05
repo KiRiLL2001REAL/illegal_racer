@@ -25,7 +25,9 @@ private:
     void loadShader();
 
 protected:
+    virtual void unloadStuff();
     virtual void loadStuff();
+    virtual void drawScene();
 };
 
 #endif
