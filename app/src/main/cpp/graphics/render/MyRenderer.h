@@ -3,7 +3,7 @@
 
 #include <jni.h>
 
-#include "base_renderer/Renderer.h"
+#include "Renderer.h"
 
 class MyRenderer : public Renderer
 {

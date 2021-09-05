@@ -3,7 +3,7 @@
 
 #include <jni.h>
 #include <EGL/egl.h>
-#include "graphics/MyRenderer.h"
+#include "graphics/render/MyRenderer.h"
 
 static ANativeWindow *aWindow = nullptr;
 static MyRenderer *aRenderer = nullptr;

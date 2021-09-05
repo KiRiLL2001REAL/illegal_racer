@@ -1,8 +1,8 @@
 #include "MyRenderer.h"
 
 #include <jni.h>
-#include "../LogHelper.h"
-#include "../native-lib.h"
+#include "../../LogHelper.h"
+#include "../../native-lib.h"
 
 #include <vector>
 

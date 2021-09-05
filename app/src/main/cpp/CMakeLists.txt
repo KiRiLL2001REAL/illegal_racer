@@ -21,9 +21,9 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        graphics/base_renderer/Renderer.cpp
+        graphics/render/Renderer.cpp
         graphics/Shader.cpp
-        graphics/MyRenderer.cpp
+        graphics/render/MyRenderer.cpp
         graphics/drawable/Triangle.cpp
         native-lib.cpp)
 
