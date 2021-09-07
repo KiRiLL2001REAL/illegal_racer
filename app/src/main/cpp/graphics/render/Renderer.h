@@ -1,9 +1,6 @@
 #ifndef ILLEGAL_RACER_RENDERER_H
 #define ILLEGAL_RACER_RENDERER_H
 
-#include "../Shader.h"
-#include "../drawable/Triangle.h"
-
 #include <GLES3/gl3.h>
 #include <EGL/egl.h>
 #include <string>

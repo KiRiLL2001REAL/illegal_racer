@@ -9,7 +9,9 @@
 MyRenderer::MyRenderer(JNIEnv *env, jobject wrappedInstance) :
     mJVM(nullptr),
     mShader(nullptr),
-    mTriangle(nullptr)
+    mTexture(nullptr),
+    mTriangle(nullptr),
+    mRectangle(nullptr)
 {
     // Запоминаем JavaVM для получения свежего env когда это потребуется
     env->GetJavaVM(&mJVM);
@@ -17,10 +19,13 @@ MyRenderer::MyRenderer(JNIEnv *env, jobject wrappedInstance) :
     mObjectRef = env->NewGlobalRef(wrappedInstance);
 
     jclass aClass = env->GetObjectClass(wrappedInstance);
-    // Запоминаем id необходимого метода
+    // Запоминаем id необходимых методов
     mMethodIdGetShaderPaths = env->GetMethodID(
             aClass,"getShaderPaths",
             "(Ljava/lang/String;Ljava/lang/String;)Ljava/util/ArrayList;");
+    mMethodIdGetAssetFilePath = env->GetMethodID(
+            aClass, "getAssetFilePath",
+            "(Ljava/lang/String;)Ljava/lang/String;");
 }
 
 MyRenderer::~MyRenderer()
@@ -95,19 +100,57 @@ void MyRenderer::loadShader()
 void MyRenderer::loadStuff()
 {
     loadShader();
+    loadTexture();
     mTriangle = new Triangle();
+    mRectangle = new Rectangle();
+
+    float newVertices[] = {-1.0f, -1.0f,  0.0f,
+                           0.0f, -1.0f,  0.0f,
+                           -1.0f,  0.0f,  0.0f,
+                           0.0f,  0.0f,  0.0f};
+
+    mRectangle->setVertices(newVertices);
 }
 
 void MyRenderer::drawScene()
 {
     mShader->use();
+    mTexture->bind();
     mTriangle->draw();
+    mRectangle->draw();
 }
 
 void MyRenderer::unloadStuff()
 {
     delete mShader;
     mShader = nullptr;
+    delete mTexture;
+    mTexture = nullptr;
     delete mTriangle;
     mTriangle = nullptr;
+    delete mRectangle;
+    mRectangle = nullptr;
+}
+
+void MyRenderer::loadTexture()
+{
+    using namespace std;
+
+    JNIEnv* env;
+    if ((env = getJNIEnv()) != nullptr)
+    {
+        jstring jtexName = env->NewStringUTF("testTexture.png");
+        auto jstr = (jstring)env->CallObjectMethod(mObjectRef, mMethodIdGetAssetFilePath, jtexName);
+
+        const char *chars = env->GetStringUTFChars(jstr, nullptr);
+        string texPath = string(chars);
+
+        env->ReleaseStringUTFChars(jstr, chars);
+        env->DeleteLocalRef(jtexName);
+        env->DeleteLocalRef(jstr);
+
+        mTexture = load_texture(texPath);
+    }
+    else
+        LOGE(TAG, "Can not load shader. Environment is unavailable");
 }

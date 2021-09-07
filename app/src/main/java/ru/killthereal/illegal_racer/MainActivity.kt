@@ -153,4 +153,38 @@ class MainActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
         return result
     }
+
+    fun getAssetFilePath(filename: String): String {
+        var path = ""
+
+        try {
+            val dir = getDir("assets", Context.MODE_PRIVATE)
+            val file = File(dir, filename)
+
+            val aInputStream = assets.open(filename)
+            val aOutputStream = FileOutputStream(file)
+            val buffer = ByteArray(4096)
+            var bytesRead = aInputStream.read(buffer)
+            while (bytesRead != -1) {
+                aOutputStream.write(buffer, 0, bytesRead)
+                bytesRead = aInputStream.read(buffer)
+            }
+            aInputStream.close()
+            aOutputStream.close()
+
+            path = file.absolutePath
+        }
+        catch (e: FileNotFoundException) {
+            Log.e(TAG, "An error occurred in getAssetFilePath(): asset file " +
+                    "\"" + filename + "\" not found\n" + e.message)
+        }
+        catch (e: IOException) {
+            Log.e(TAG, "An I/O error occurred in getAssetFilePath()\n" + e.message)
+        }
+        catch (e: Exception) {
+            Log.e(TAG, "An error occurred in getAssetFilePath()\n" + e.message)
+        }
+
+        return path
+    }
 }
