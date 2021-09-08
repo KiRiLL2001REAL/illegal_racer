@@ -28,6 +28,8 @@ add_library( # Sets the name of the library.
         graphics/drawable/Rectangle.cpp
         graphics/Texture.cpp
         graphics/loaders/Loaders.cpp
+        controls/Camera.cpp
+        controls/Touches.cpp
         native-lib.cpp)
 
 find_library(log-lib log)

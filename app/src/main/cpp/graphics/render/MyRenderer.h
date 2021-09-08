@@ -10,6 +10,10 @@
 #include "../drawable/Rectangle.h"
 #include "../Texture.h"
 #include "../loaders/Loaders.h"
+#include "../../controls/Camera.h"
+
+#include "../../modules/glm/glm/glm.hpp"
+#include "../../modules/glm/glm/ext.hpp"
 
 class MyRenderer : public Renderer
 {
@@ -17,10 +21,13 @@ public:
     constexpr static const char *const TAG = "MyRenderer";
 
     MyRenderer(JNIEnv *env, jobject wrappedInstance);
-
     virtual ~MyRenderer();
 
 private:
+    glm::mat4 mMatrixModel;
+
+    Camera *mCamera;
+
     Shader *mShader;
     Texture *mTexture;
     Triangle *mTriangle;

@@ -7,11 +7,13 @@
 #include <vector>
 
 MyRenderer::MyRenderer(JNIEnv *env, jobject wrappedInstance) :
-    mJVM(nullptr),
-    mShader(nullptr),
-    mTexture(nullptr),
-    mTriangle(nullptr),
-    mRectangle(nullptr)
+        mJVM(nullptr),
+        mShader(nullptr),
+        mTexture(nullptr),
+        mTriangle(nullptr),
+        mRectangle(nullptr),
+        mMatrixModel(1.0f),
+        mCamera(nullptr)
 {
     // Запоминаем JavaVM для получения свежего env когда это потребуется
     env->GetJavaVM(&mJVM);
@@ -99,6 +101,7 @@ void MyRenderer::loadShader()
 
 void MyRenderer::loadStuff()
 {
+    mCamera = new Camera(vec3(0, 0, 1), radians(50.0f));
     loadShader();
     loadTexture();
     mTriangle = new Triangle();
@@ -115,6 +118,9 @@ void MyRenderer::loadStuff()
 void MyRenderer::drawScene()
 {
     mShader->use();
+    mShader->uniformMatrix("model", mMatrixModel);
+    mShader->uniformMatrix("projview",
+                           mCamera->getProjection() * mCamera->getView());
     mTexture->bind();
     mTriangle->draw();
     mRectangle->draw();
@@ -122,14 +128,11 @@ void MyRenderer::drawScene()
 
 void MyRenderer::unloadStuff()
 {
-    delete mShader;
-    mShader = nullptr;
-    delete mTexture;
-    mTexture = nullptr;
-    delete mTriangle;
-    mTriangle = nullptr;
-    delete mRectangle;
-    mRectangle = nullptr;
+    delete mCamera;     mCamera = nullptr;
+    delete mShader;     mShader = nullptr;
+    delete mTexture;    mTexture = nullptr;
+    delete mTriangle;   mTriangle = nullptr;
+    delete mRectangle;  mRectangle = nullptr;
 }
 
 void MyRenderer::loadTexture()

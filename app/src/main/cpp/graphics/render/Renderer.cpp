@@ -15,6 +15,9 @@
 
 #include "../../native-lib.h"
 
+int Renderer::mWidth = 0;
+int Renderer::mHeight = 0;
+
 Renderer::Renderer() :
         mThreadId(0),
         mMutex(),
@@ -140,7 +143,6 @@ bool Renderer::initialize()
     EGLContext context;
     EGLint width;
     EGLint height;
-    GLfloat ratio;
 
     LOGI(TAG, "Initializing context");
 
@@ -214,7 +216,8 @@ bool Renderer::initialize()
 
     glViewport(0, 0, width, height);
 
-    ratio = (GLfloat) width / height;
+    mWidth = width;
+    mHeight = height;
 
     GLint major, minor;
     glGetIntegerv(GL_MAJOR_VERSION, &major);

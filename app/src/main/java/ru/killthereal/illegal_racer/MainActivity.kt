@@ -13,8 +13,11 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.lang.Exception
 import android.app.ActivityManager
+import android.content.pm.PackageManager
 import android.widget.Toast
 import java.lang.RuntimeException
+import android.view.MotionEvent
+import java.lang.StringBuilder
 
 
 class MainActivity : AppCompatActivity(), SurfaceHolder.Callback {
@@ -26,6 +29,8 @@ class MainActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
     val TAG = "MainActivity"
 
+    var mMaxTouches: Int = 3;
+
     private external fun nativeOnStart()
     private external fun nativeOnResume()
     private external fun nativeOnPause()
@@ -36,6 +41,10 @@ class MainActivity : AppCompatActivity(), SurfaceHolder.Callback {
         super.onCreate(savedInstanceState)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         setContentView(R.layout.activity_main)
+
+        // Для лучшего user experience желательно наличие поддержки 3х касаний
+        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT))
+            mMaxTouches = 2;
 
         val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
         val configurationInfo = activityManager.deviceConfigurationInfo

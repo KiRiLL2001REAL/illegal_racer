@@ -4,6 +4,8 @@
 #include <GLES3/gl3ext.h>
 #include "../LogHelper.h"
 
+#include "../modules/glm/glm/gtc/type_ptr.hpp"
+
 #include <exception>
 #include <fstream>
 #include <sstream>
@@ -21,6 +23,12 @@ Shader::~Shader()
 void Shader::use() const
 {
     glUseProgram(id);
+}
+
+void Shader::uniformMatrix(const std::string& name, glm::mat4 matrix) const
+{
+    GLuint transformLoc = glGetUniformLocation(id, name.c_str());
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
 Shader* load_shader(const std::string &vFilePath, const std::string &fFilePath)

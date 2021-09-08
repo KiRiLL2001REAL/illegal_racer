@@ -17,6 +17,8 @@ public:
     void stop();
     void setWindow(ANativeWindow* window);
 
+    static int32_t mWidth, mHeight;
+
 private:
     enum RenderThreadMessage {
         MSG_NONE = 0,
