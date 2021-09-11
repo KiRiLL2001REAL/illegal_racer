@@ -14,6 +14,8 @@ Java_ru_killthereal_illegal_1racer_MainActivity_nativeOnStart(
         JNIEnv *env,
         jobject thiz)
 {
+    aTouches = new touch::Touches();
+    aTouches->setHandlerFrequency(130);
     aRenderer = new MyRenderer(env, thiz);
 }
 
@@ -23,6 +25,7 @@ Java_ru_killthereal_illegal_1racer_MainActivity_nativeOnResume(
         JNIEnv *env,
         jobject thiz)
 {
+    aTouches->start();
     aRenderer->start();
 }
 
@@ -32,6 +35,7 @@ Java_ru_killthereal_illegal_1racer_MainActivity_nativeOnPause(
         JNIEnv *env,
         jobject thiz)
 {
+    aTouches->stop();
     aRenderer->stop();
 }
 
@@ -41,6 +45,8 @@ Java_ru_killthereal_illegal_1racer_MainActivity_nativeOnStop(
         JNIEnv *env,
         jobject thiz)
 {
+    delete aTouches;
+    aTouches = nullptr;
     delete aRenderer;
     aRenderer = nullptr;
 }
@@ -63,4 +69,40 @@ Java_ru_killthereal_illegal_1racer_MainActivity_nativeSetSurface(
         LOGI(TAG, "Releasing window");
         ANativeWindow_release(aWindow);
     }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_ru_killthereal_illegal_1racer_CustomSurfaceView_registerActionDown(
+        JNIEnv *env,
+        jobject thiz,
+        jint id,
+        jfloat x,
+        jfloat y)
+{
+    aTouches->registerActionDown(id, x, y);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_ru_killthereal_illegal_1racer_CustomSurfaceView_registerActionUp(
+        JNIEnv *env,
+        jobject thiz,
+        jint id,
+        jfloat x,
+        jfloat y)
+{
+    aTouches->registerActionUp(id, x, y);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_ru_killthereal_illegal_1racer_CustomSurfaceView_registerActionMove(
+        JNIEnv *env,
+        jobject thiz,
+        jint id,
+        jfloat dx,
+        jfloat dy)
+{
+    aTouches->registerActionMove(id, dx, dy);
 }
