@@ -3,8 +3,9 @@
 
 #include <utility>
 #include <queue>
-#include <map>
+#include <vector>
 #include <pthread.h>
+#include <chrono>
 
 //#define _touch_DEBUG
 
@@ -12,34 +13,42 @@ namespace touch
 {
     struct Event
     {
-    private:
-        struct clickAction
+        struct pressAction
         {
-            std::pair<float, float> position = {0.f, 0.f};
+            float posX;
+            float posY;
+        };
+        struct releaseAction
+        {
+            float posX;
+            float posY;
+            std::chrono::milliseconds elapsedSincePress;
         };
         struct moveAction
         {
-            std::pair<float, float> startPosition = {0.f, 0.f};
-            std::pair<float, float> deltaDist = {0.f, 0.f};
+            float primordialX;
+            float primordialY;
+            float deltaX;
+            float deltaY;
         };
         struct zoomAction
         {
-            std::pair<float, float> firstPointer = {0.f, 0.f};
-            std::pair<float, float> secondPointer = {0.f, 0.f};
-            float dDist = 0.f;
+            float centerX;
+            float centerY;
+            float deltaDist;
         };
 
-    public:
-        enum types
+        enum EventType
         {
-            Nope = 0, Click, Move, Zoom
-        } Type = Nope;
+            Nope = 0, Press, Release, Move, Zoom
+        } type = Nope;
 
-        union action
+        union
         {
-            clickAction Click;
-            moveAction Move;
-            zoomAction Zoom;
+            pressAction PressEvent;
+            releaseAction ReleaseEvent;
+            moveAction MoveEvent;
+            zoomAction ZoomEvent;
         };
     };
 
@@ -70,10 +79,26 @@ namespace touch
 
         struct Touch
         {
+            int id;
+            // Для того, чтобы клиент мог определить, к какой области применять перемещение
             std::pair<float, float> primordialPosition;
             std::pair<float, float> position;
-            Touch() : primordialPosition({0.f, 0.f}), position({0.f, 0.f}) {}
-            Touch(float x, float y) : primordialPosition({x, y}), position({x, y}) {}
+            std::chrono::milliseconds startTime;
+            bool moveFlag;
+            Touch() :
+                    id(0),
+                    primordialPosition({0.f, 0.f}),
+                    position({0.f, 0.f}),
+                    startTime(0),
+                    moveFlag(false)
+            {}
+            Touch(float x, float y) :
+                    id(0),
+                    primordialPosition({x, y}),
+                    position({x, y}),
+                    startTime(0),
+                    moveFlag(false)
+            {}
         };
 
         struct PostEvent
@@ -103,7 +128,7 @@ namespace touch
 
         std::queue<PostEvent> mPostEvents;
         std::queue<Event> mEvents;
-        std::map<int, Touch> mTouches;
+        std::vector<Touch> mTouches;
 
         bool pollPostEvent(PostEvent& e);
     };

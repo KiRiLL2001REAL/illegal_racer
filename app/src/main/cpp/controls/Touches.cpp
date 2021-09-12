@@ -2,7 +2,6 @@
 #include "../LogHelper.h"
 
 #include <unistd.h>
-#include <chrono>
 
 touch::Touches::Touches() :
         mThreadId(0),
@@ -25,12 +24,16 @@ touch::Touches::~Touches()
 
 void touch::Touches::flush()
 {
+    pthread_mutex_lock(&mMutex);
+
     std::queue<PostEvent> emptyPE;
     std::swap(mPostEvents, emptyPE);
     std::queue<Event> emptyE;
     std::swap(mEvents, emptyE);
-    std::map<int, Touch> emptyT;
+    std::vector<Touch> emptyT;
     std::swap(mTouches, emptyT);
+
+    pthread_mutex_unlock(&mMutex);
 }
 
 void touch::Touches::setThreshold(float value)
@@ -121,12 +124,154 @@ void touch::Touches::handlerLoop()
 
         // Обработка отложенных событий
 #ifdef _touch_DEBUG
-    handledTouches += mPostEvents.size();
+        handledTouches += mPostEvents.size();
 #endif
         PostEvent e;
         while (pollPostEvent(e))
         {
+            using namespace std::chrono;
 
+            switch (e.type)
+            {
+                case PostEvent::Down:
+                {
+                    auto it = mTouches.begin();
+                    while (it != mTouches.end() && it->id != e.touchId) it++;
+                    if (it != mTouches.end())
+                        LOGW(TAG, "TouchDown with id %d is already exists", e.touchId);
+                    Touch t(e.arg.first, e.arg.second);
+                    t.startTime = duration_cast<milliseconds>(steady_clock::now().time_since_epoch());
+                    if (it != mTouches.end())
+                        *it = t;
+                    else mTouches.push_back(t);
+                    // Генерация события PressEvent
+                    Event ev;
+                    ev.type = Event::Press;
+                    ev.PressEvent.posX = e.arg.first;
+                    ev.PressEvent.posY = e.arg.second;
+                    mEvents.push(ev);
+                    // конец
+                    break;
+                }
+                case PostEvent::Up:
+                {
+                    auto it = mTouches.begin();
+                    while (it != mTouches.end() && it->id != e.touchId) it++;
+                    if (it == mTouches.end())
+                    {
+                        LOGW(TAG, "TouchUp with id %d isn't exists. Skipping.", e.touchId);
+                        break;
+                    }
+                    Touch t = *it;
+                    // Генерация события ReleaseEvent
+                    Event ev;
+                    ev.type = Event::Press;
+                    ev.ReleaseEvent.posX = e.arg.first;
+                    ev.ReleaseEvent.posX = e.arg.second;
+                    milliseconds ms = duration_cast<milliseconds>(steady_clock::now().time_since_epoch());
+                    ev.ReleaseEvent.elapsedSincePress = ms - t.startTime;
+                    mEvents.push(ev);
+                    // конец
+
+                    mTouches.erase(it);
+                    break;
+                }
+                case PostEvent::Move:
+                {
+                    auto it = mTouches.begin();
+                    while (it != mTouches.end() && it->id != e.touchId) it++;
+                    /* Проверка также предусматривает выход из обработки при отсутствии зарегис-
+                     * трированных касаний
+                     */
+                    if (it == mTouches.end())
+                    {
+                        LOGW(TAG, "TouchUp with id %d isn't exists. Skipping.", e.touchId);
+                        break;
+                    }
+                    /*
+                     * Случаи: (прежде всего, до обработки касание должно преодолеть пороговое
+                     * смещение)
+                     * 1) Зарегистрировано 1 касание:
+                     *      1.1) Генерируется событие MoveEvent.
+                     *      1.2) Положение касания изменяется на то, что записано во внешнем
+                     *      событии.
+                     *      1.3) Взводится флаг движения (касание преодолело пороговое смещение)
+                     * 2) Зарегистрировано 2 и более касаний:
+                     *      2.1) Внешнее событие пришло от первого или последнего зарегистриро-
+                     *      ванного касания:
+                     *          2.1.1) Генерируется событие ZoomEvent с центром приближения в
+                     *          противоположном касании.
+                     *          2.1.2) Положение касания изменяется на то, что записано во внеш-
+                     *          нем событии.
+                     *      2.2) Внешнее событие пришло не от первого и не от последнего зареги-
+                     *      стрированного касания:
+                     *          2.2.1) Выполняем пункт 1
+                     */
+                    float deltaX = e.arg.first - it->primordialPosition.first;
+                    float deltaY = e.arg.second - it->primordialPosition.second;
+                    if (abs(deltaX) >= mThreshold && abs(deltaY) >= mThreshold)
+                    {
+                        if (mTouches.size() < 2 &&
+                            (it->id != mTouches.front().id || it->id != mTouches.back().id))
+                        {
+                            // Генерация события MoveEvent
+                            Event ev;
+                            ev.type = Event::Move;
+                            ev.MoveEvent.primordialX = it->primordialPosition.first;
+                            ev.MoveEvent.primordialY = it->primordialPosition.second;
+                            ev.MoveEvent.deltaX = deltaX;
+                            ev.MoveEvent.deltaY = deltaY;
+                            mEvents.push(ev);
+                            it->position = e.arg;
+                            it->moveFlag = true;
+                            // конец
+                        }
+                        else if (it->moveFlag)
+                        {
+                            // Генерация события ZoomEvent
+                            Event ev;
+                            ev.type = Event::Zoom;
+                            if (it->id == mTouches.front().id)
+                            {
+                                ev.ZoomEvent.centerX = mTouches.back().position.first;
+                                ev.ZoomEvent.centerY = mTouches.back().position.second;
+                            }
+                            else
+                            {
+                                ev.ZoomEvent.centerX = mTouches.front().position.first;
+                                ev.ZoomEvent.centerY = mTouches.front().position.second;
+                            }
+                            float distanceOld =
+                                    sqrt(
+                                            pow(mTouches.front().position.first -
+                                                mTouches.back().position.first,
+                                                2.f) +
+                                            pow(mTouches.front().position.second -
+                                                mTouches.back().position.second,
+                                                2.f));
+                            deltaX = e.arg.first - it->position.first;
+                            deltaX = e.arg.second - it->position.second;
+                            it->position.first += deltaX;
+                            it->position.second += deltaX;
+                            float distanceCurrent =
+                                    sqrt(
+                                            pow(mTouches.front().position.first -
+                                                mTouches.back().position.first,
+                                                2.f) +
+                                            pow(mTouches.front().position.second -
+                                                mTouches.back().position.second,
+                                                2.f));
+                            ev.ZoomEvent.deltaDist = distanceCurrent - distanceOld;
+                            mEvents.push(ev);
+                            // конец
+                        }
+                    }
+                    break;
+                }
+                case PostEvent::Nope:
+                default:
+                    break;
+            }
         }
 
         pthread_mutex_unlock(&mMutex);
@@ -151,7 +296,7 @@ void touch::Touches::handlerLoop()
 
         // Приостанавливаем поток на некоторое время
         long delay = long(mHandlerNanosDelay - elapsedNanos.count());
-        delay = delay > 0 ? delay : 1000000; // 1мс
+        delay = delay > 0 ? delay : 10000000; // 1мс
 
         sleepTime.tv_sec = 0;
         sleepTime.tv_nsec = delay;
